@@ -1,0 +1,344 @@
+作业
+02-----------------------------------------
+
+1 列出常见的整数值比较操作，并说明各自作用。
+
+参考答案
+
+    -eq 等于（Equal）
+    -ne 不等于（Not Equal）
+    -ge 大于或等于（Greater or Equal）
+    -le 小于或等于（Lesser or Equal）
+    -gt 大于（Greater Than）
+    -lt 小于（Lesser Than）
+
+2 运用条件测试操作，检查当前的用户是否为root。
+
+参考答案
+
+    [root@svr5 ~]# [ $USER == "root" ] && echo "yes" || echo no
+    yes
+    [root@svr5 ~]# su - mike
+    [mike@svr5 ~]$ [ $USER == "root" ] && echo "yes" || echo no
+    no
+
+3 绘图描述if双分支结构的执行流程。
+
+参考答案
+
+if双分支结构判断一次条件，当条件成立时执行分支1、若不成立则执行分支2，如图-1所示。
+ 
+
+图-1
+4 编写uaddfor.sh脚本，根据用户名列表快速添加用户账号。
+
+需要添加的账号名称保存在/root/users.txt文件中，每行一个用户名。要求在执行uaddfor.sh脚本后，能够为这些用户名快速添加好系统账号，并将登录密码设置为1234567。
+
+参考答案
+
+1）准备测试用的账号列表文件
+
+    [root@svr5 ~]# vim  /root/users.txt 
+    linzhiying
+    guotao
+    tianliang
+
+2）编写uaddfor.sh脚本文件
+
+    [root@svr5 ~]# vim uaddfor.sh   
+    #!/bin/bash
+    ULIST=$(cat /root/users.txt)
+    for UNAME in $ULIST
+    do
+        useradd $UNAME
+        echo "1234567" | passwd --stdin $UNAME &> /dev/null
+    done
+    [root@svr5 ~]# chmod +x uaddfor.sh
+
+3）测试、验证执行效果
+
+    [root@svr5 ~]# tail -3 /etc/passwd
+    linzhiying:x:527:527::/home/linzhiying:/bin/bash
+    guotao:x:528:528::/home/guotao:/bin/bash
+    tianliang:x:529:529::/home/tianliang:/bin/bash
+
+5 编写sumwhile脚本，计算从1-100之间所有整数的和。
+
+参考答案
+
+1）编写sumwhile.sh脚本文件
+
+    [root@svr5 ~]# cat sumwhile.sh 
+    #!/bin/bash
+    sum=0 ; i=1
+    while [ $i -le 100 ]
+    do
+        let sum+=$i
+        let i++
+    done
+    echo "1-100的总和是：$sum"
+    [root@svr5 ~]# chmod +x sumwhile.sh
+
+2）测试、验证执行效果
+
+    [root@svr5 ~]# ./sumwhile.sh 
+    1-100的总和是：5050
+
+03-----------------------------------------------------------------------------
+
+1 简述Linux服务脚本中的case分支结构。
+
+参考答案
+
+Linux服务脚本通常利用$1位置变量来获取控制参数，并结合case分支来做出不同的响应，典型的结构如下：
+
+    case  "$1"  in                                              //检查第一个位置参数
+      start)
+            echo  "启动服务.. .." ;;                             //启动服务的语句块
+      stop)
+            echo  "停止服务.. .." ;;                               //停止服务的语句块
+      restart)
+            $0  stop                                                //停止服务
+            $0  start                                           //启动服务
+            ;;
+      *)
+            echo  $"用法: $0 {start|stop|restart}"             //提示正确用法
+            exit 1 
+    esac
+
+2 简述定义一个Shell函数的两种方法。
+
+参考答案
+
+方法1：
+
+    function  函数名 {
+        命令序列
+        .. ..
+    }
+
+方法2：
+
+    函数名() {
+        命令序列
+        .. ..
+    }
+
+3 简述Shell环境常见的中断及退出控制指令。
+
+参考答案
+
+    break：跳出当前所在的循环体，执行循环体后的语句。
+    continue:跳过循环体内余下的语句，重新判断条件以便执行下一次循环。
+    exit:退出脚本，默认返回值是 0。
+
+
+04-------------------------------------------------------------
+
+
+1 简述egrep工具的-q选项的含义，并验证其在脚本应用中的价值。
+
+参考答案
+
+选项-q的作用是静默、无任何输出，效果类似于正常的egrep操作添加了&> /dev/null来屏蔽输出。在脚本中当需要检测文本内是否存在指定的关键词时，可以利用egrep -q的返回状态值来作为判断依据，从而简化&>输出的操作。
+
+验证效果可参考：
+
+    [root@svr5 ~]# cat /etc/shells                             //查看测试文本
+    /bin/sh
+    /bin/bash
+    /sbin/nologin
+    /bin/dash
+    /bin/tcsh
+    /bin/csh
+    /bin/zsh 
+    [root@svr5 ~]# egrep -q '/zsh' /etc/shells && echo yes || echo no
+    yes                                                          //支持zsh
+    [root@svr5 ~]# egrep -q '/bsh' /etc/shells && echo yes || echo no 
+    no                                                         //不支持bsh
+
+2 正则表达式中的+、？、*分别表示什么含义？
+
+参考答案
+
+这三个字符用来限制关键词的匹配次数，含义分别如下：
+
+    +：最少匹配一次，比如a+可匹配a、aa、aaa等
+    ？：最多匹配一次，比如a?可匹配零个或一个a
+    *：匹配任意多次，比如a*可匹配零个或任意多个连续的a
+
+3 如何编写正则表达式匹配11位的手机号？
+
+参考答案
+
+准备测试文件：
+
+    [root@svr5 ~]# cat tel.txt 
+    01012315
+    137012345678
+    13401234567
+    10086
+    18966677788
+
+提取包含11位手机号的行：
+
+    [root@svr5 ~]# egrep '^1[0-9]{10}$' tel.txt 
+    13401234567
+    18966677788
+
+4 简述sed定址符的作用及表示方式。
+
+参考答案
+
+    作用：地址符（执行指令的条件）控制sed需要处理文本的范围；不加定址符则逐行处理所有行
+    表示方式：地址符可以使用行号或正则表达式
+
+5 如何使用sed提取文本中的偶数行？
+
+参考答案
+
+查看测试文本：
+
+    [root@svr5 ~]# cat -n /etc/rc.local 
+         1  #!/bin/sh
+         2  #
+         3  # This script will be executed *after* all the other init scripts.
+         4  # You can put your own initialization stuff in here if you don't
+         5  # want to do the full Sys V style init stuff.
+         6
+         7  touch /var/lock/subsys/local
+
+提取偶数行的操作及效果：
+
+    [root@svr5 ~]# cat -n /etc/rc.local | sed -n '2~2p'
+         2  #
+         4  # You can put your own initialization stuff in here if you don't
+         6
+
+6 如何使用sed删除文本中每行的第4个字符？
+
+参考答案
+
+查看测试文本：
+
+    [root@svr5 ~]# cat /etc/rc.local 
+    #!/bin/sh
+    #
+    # This script will be executed *after* all the other init scripts.
+    # You can put your own initialization stuff in here if you don't
+    # want to do the full Sys V style init stuff.
+    touch /var/lock/subsys/local
+
+删除每行第4个字符的操作及效果：
+
+    [root@svr5 ~]# cat /etc/rc.local | sed 's/.//4'
+    #!/in/sh
+    #
+    # Tis script will be executed *after* all the other init scripts.
+    # Yu can put your own initialization stuff in here if you don't
+    # wnt to do the full Sys V style init stuff.
+touh /var/lock/subsys/local
+
+
+05-------------------------------------------------------------
+
+1 提取/etc/passwd文件的第6-10行，另存为pass5.txt文件。
+
+参考答案
+
+提取或导出文本：
+
+    [root@svr5 ~]# sed -n '6,10p' /etc/passwd > pass5.txt
+
+或者：
+
+    [root@svr5 ~]# sed -n '6,10w pass5.txt' /etc/passwd
+
+确认提取结果：
+
+    [root@svr5 ~]# cat pass5.txt 
+    sync:x:5:0:sync:/sbin:/bin/sync
+    shutdown:x:6:0:shutdown:/sbin:/sbin/shutdown
+    halt:x:7:0:halt:/sbin:/sbin/halt
+    mail:x:8:12:mail:/var/spool/mail:/sbin/nologin
+    uucp:x:10:14:uucp:/var/spool/uucp:/sbin/nologin
+
+2 简述awk工具的基本语法格式。
+
+参考答案
+
+    格式1： awk [选项] ‘[条件]{处理动作}’ 文件列表
+    格式2： 命令 | awk [选项] ‘[条件]{处理动作}’
+
+3 简述awk工具常用的内置变量、各自的作用。
+
+参考答案
+
+    $n：即$1、$2、$3……，表示指定分隔的第几个字段
+    $0：保存当前读入的整行文本内容
+    NF：记录当前处理行的字段个数（列数）
+    NR：记录当前已读入行的数量（行数）
+
+4 awk处理文本时，读文件前、读取文件内容中、读文件后后这三个环节是如何表示的？
+
+参考答案
+
+    BEGIN{ } 文件前处理：awk没有读入行之前 要执行的动作； 一般对数据作初始化操作，可以单独使用。
+    { } 行处理：对awk读入的每一行进行处理，可以单独使用。
+    END{ }文件后处理：awk 把所有的行都处理完后要执行的动作，一般输出数据处理的结果。可以单独使用。
+
+5 提取当前eth0网卡的IPv4地址及掩码信息。
+
+参考答案
+
+查看测试文本：
+
+    [root@svr5 ~]# ip add list eth0
+    2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+        link/ether 00:0c:29:64:88:8e brd ff:ff:ff:ff:ff:ff
+        inet 192.168.4.55/24 brd 192.168.4.255 scope global eth0
+        inet 192.168.4.5/24 brd 192.168.4.255 scope global secondary eth0
+        inet6 fe80::20c:29ff:fe64:888e/64 scope link 
+           valid_lft forever preferred_lft forever
+
+提取IPv4地址及掩码信息的操作及效果：
+
+    [root@svr5 ~]# ip add list eth0 | awk '/\<inet\>/{print $2}'
+    192.168.4.55/24
+    192.168.4.5/24
+
+6 找出UID位于10~20之间的用户，输出用户名及对应的UID。
+
+参考答案
+
+    [root@svr5 ~]# awk -F: '$3>=10 && $3<=20{print $1":"$3}' /etc/passwd
+    uucp:10
+    operator:11
+    games:12
+    gopher:13
+    ftp:14 
+
+7 找出UID与GID不同的用户，列出用户名及对应的UID、GID。
+
+参考答案
+
+    [root@svr5 ~]# awk -F: '$3!=$4{print $1":"$3":"$4}' /etc/passwd 
+    adm:3:4
+    lp:4:7
+    sync:5:0
+    shutdown:6:0
+    halt:7:0
+    mail:8:12
+    uucp:10:14
+    operator:11:0
+    games:12:100
+    gopher:13:30
+    ftp:14:50
+    rtkit:499:497
+    saslauth:498:76
+    pulse:497:496
+
+
+06---------------------------------------------------------------
+
+
